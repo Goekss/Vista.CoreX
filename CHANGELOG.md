@@ -11,3 +11,5 @@
 
 - [2026-05-15 09:15:10] feat(resilience): circuit breaker pattern and automatic bulkhead isolation
 
+- [2026-05-15 11:35:20] feat(telemetry): opentelemetry distributed tracing with jaeger collector
+
