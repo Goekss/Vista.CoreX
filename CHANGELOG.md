@@ -9,3 +9,5 @@
 
 - [2026-05-13 16:35:40] feat(event-bus): kafka event-streaming partitions with idempotent consumers
 
+- [2026-05-15 09:15:10] feat(resilience): circuit breaker pattern and automatic bulkhead isolation
+
