@@ -43,3 +43,5 @@
 
 - [2026-05-28 15:15:35] docs: publish enterprise system architecture blueprint and topology map
 
+- [2026-05-28 18:40:45] feat(corex): enterprise multi-tenant high-throughput distributed runtime
+
