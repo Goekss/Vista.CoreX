@@ -57,3 +57,5 @@
 
 - [2026-06-06 09:35:12] feat(storage): sharded distributed postgres cluster with read replicas
 
+- [2026-06-06 14:10:30] feat(cache): multi-region redis active-active geo-replication layer
+
