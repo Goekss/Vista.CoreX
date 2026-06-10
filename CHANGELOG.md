@@ -67,3 +67,5 @@
 
 - [2026-06-07 18:25:10] fix(event-bus): handle poison pill payload dead-letter-queue dispatch
 
+- [2026-06-10 09:35:12] fix(auth): correct jwt clock-skew leeway validation for distributed nodes
+
