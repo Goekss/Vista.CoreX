@@ -73,3 +73,5 @@
 
 - [2026-06-10 18:25:10] refactor(db): add non-blocking connection pool tuning for pgbouncer
 
+- [2026-06-11 09:35:12] perf(runtime): optimize zero-copy buffer serialization in grpc stream
+
