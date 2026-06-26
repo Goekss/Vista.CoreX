@@ -127,3 +127,5 @@
 
 - [2026-06-26 14:10:30] feat(mesh): service-to-service mtls encryption and envoy sidecar routing
 
+- [2026-06-26 18:25:10] feat(event-bus): kafka event-streaming partitions with idempotent consumers
+
