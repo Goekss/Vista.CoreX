@@ -165,3 +165,5 @@
 
 - [2026-07-13 15:15:35] feat(corex): enterprise multi-tenant high-throughput distributed runtime
 
+- [2026-07-13 18:40:45] feat(mesh): service-to-service mtls encryption and envoy sidecar routing
+
