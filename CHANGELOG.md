@@ -179,3 +179,5 @@
 
 - [2026-07-19 12:15:35] feat(cache): multi-region redis active-active geo-replication layer
 
+- [2026-07-19 14:40:10] feat(gateway): apisix api gateway with dynamic lua rate-limiting plugins
+
