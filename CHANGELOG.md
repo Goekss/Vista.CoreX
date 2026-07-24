@@ -195,3 +195,5 @@
 
 - [2026-07-24 14:10:30] perf(runtime): optimize zero-copy buffer serialization in grpc stream
 
+- [2026-07-24 18:25:10] style(logging): standardize json structured logs with trace context keys
+
