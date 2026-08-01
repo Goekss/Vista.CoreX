@@ -223,3 +223,5 @@
 
 - [2026-08-01 10:15:15] feat(vault): hashicorp vault secret rotation and dynamic db credentials
 
+- [2026-08-01 16:35:40] fix(mesh): resolve socket connection starvation on high concurrent traffic
+
