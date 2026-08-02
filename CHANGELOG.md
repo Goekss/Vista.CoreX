@@ -231,3 +231,5 @@
 
 - [2026-08-02 15:15:35] refactor(pipeline): migrate synchronous orchestration to saga choreographies
 
+- [2026-08-02 18:40:45] refactor(db): add non-blocking connection pool tuning for pgbouncer
+
