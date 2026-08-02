@@ -229,3 +229,5 @@
 
 - [2026-08-02 11:35:20] fix(auth): correct jwt clock-skew leeway validation for distributed nodes
 
+- [2026-08-02 15:15:35] refactor(pipeline): migrate synchronous orchestration to saga choreographies
+
