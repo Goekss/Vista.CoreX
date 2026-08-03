@@ -237,3 +237,5 @@
 
 - [2026-08-03 11:20:30] style(logging): standardize json structured logs with trace context keys
 
+- [2026-08-03 14:05:40] test(chaos): chaos engineering pod disruption and network latency test
+
