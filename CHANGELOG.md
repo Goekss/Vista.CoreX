@@ -255,3 +255,5 @@
 
 - [2026-08-06 15:15:35] feat(auth): openid connect provider federation and rbac granular scopes
 
+- [2026-08-06 18:40:45] feat(storage): sharded distributed postgres cluster with read replicas
+
