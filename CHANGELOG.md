@@ -265,3 +265,5 @@
 
 - [2026-08-13 14:10:30] fix(mesh): resolve socket connection starvation on high concurrent traffic
 
+- [2026-08-13 18:25:10] fix(event-bus): handle poison pill payload dead-letter-queue dispatch
+
