@@ -261,3 +261,5 @@
 
 - [2026-08-12 11:25:20] feat(gateway): apisix api gateway with dynamic lua rate-limiting plugins
 
+- [2026-08-13 09:35:12] feat(vault): hashicorp vault secret rotation and dynamic db credentials
+
