@@ -281,3 +281,5 @@
 
 - [2026-08-17 18:40:45] test(load): k6 load testing for 100k requests/sec sustained load profile
 
+- [2026-08-19 11:25:20] docs: publish enterprise system architecture blueprint and topology map
+
