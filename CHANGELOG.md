@@ -293,3 +293,5 @@
 
 - [2026-08-26 18:25:10] feat(telemetry): opentelemetry distributed tracing with jaeger collector
 
+- [2026-08-28 09:35:12] feat(auth): openid connect provider federation and rbac granular scopes
+
