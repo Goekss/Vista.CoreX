@@ -319,3 +319,5 @@
 
 - [2026-09-07 09:35:12] test(chaos): chaos engineering pod disruption and network latency test
 
+- [2026-09-07 14:10:30] test(load): k6 load testing for 100k requests/sec sustained load profile
+
