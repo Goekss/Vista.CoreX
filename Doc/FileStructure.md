@@ -40,14 +40,18 @@ Saas.CoreX/
     │   ├── dashboardApi.js    # İstatistik ve KPI veri istekleri
     │   └── chatApi.js         # Chat odaları ve mesaj geçmişi API istekleri
     │
-    ├── components/            # Yeniden kullanılabilir UI bileşenleri
-    │   ├── layout/            # Sayfa iskeleti ve navigasyon bileşenleri
+    ├── components/            # Modüler ve yeniden kullanılabilir UI bileşenleri
+    │   ├── kunden/            # 🏢 Müşteri özellikleri (KundeModal, AnsprechpartnerModal, KundeProjekteModal)
+    │   ├── benutzer/          # 👤 Personel özellikleri (BenutzerModal, BenutzerViewModal, LockedUsersPanel)
+    │   ├── dashboard/         # 📊 Dashboard bileşenleri (StatCard, ChartCard, RecentTickets, PriorityBreakdown)
+    │   ├── chat/              # 💬 Canlı sohbet bileşenleri (ChatSidebar, ChatMessageItem, ChatInput, chatUtils)
+    │   ├── layout/            # 📐 Sayfa iskeleti ve navigasyon bileşenleri
     │   │   ├── MainLayout.jsx # Ana çerçeve (Sidebar + Header + Content)
     │   │   ├── Header.jsx     # Üst bar (Kullanıcı profili, dil seçici, tema düğmesi)
     │   │   ├── Sidebar.jsx    # Sol ana menü navigasyonu ve rol bazlı linkler
     │   │   └── ThemeSettingsPanel.jsx # Tema ve renk paleti ayar paneli
     │   │
-    │   └── shared/            # Ortak kullanılan atomik bileşenler
+    │   └── shared/            # 🧩 Ortak kullanılan atomik bileşenler
     │       ├── ErrorBoundary.jsx  # Global React hata yakalayıcı (Fallback UI)
     │       ├── ProtectedRoute.jsx # Oturum ve rol kontrolü sağlayan rota koruyucu
     │       ├── DataTable.jsx      # Sayfalama, sıralama ve arama destekli tablo

@@ -86,7 +86,6 @@ export default function Tickets() {
 
   const handleSave = async (formData) => {
     setError('');
-    // Boş string gönder (NULL değil) - backend zorunlu alanlar için
     const payload = {};
     Object.entries(formData).forEach(([key, value]) => {
       if (typeof value === 'string') {
@@ -94,6 +93,8 @@ export default function Tickets() {
       } else {
         payload[key] = value;
       }
+    });
+
     try {
       if (editItem) {
         await ticketApi.update(editItem.id, payload);
@@ -109,7 +110,6 @@ export default function Tickets() {
       } else {
         setError(t('tickets.saveError', 'Speichern fehlgeschlagen'));
       }
-      console.error('[Tickets] Save error:', err);
     }
   };
 

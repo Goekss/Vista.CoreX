@@ -1,5 +1,5 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Spinner, ButtonGroup } from 'react-bootstrap';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Spinner } from 'react-bootstrap';
 import { chatApi } from '../api/chatApi';
 import { benutzerApi } from '../api/benutzerApi';
 import { getAvatarUrl } from '../api/axiosClient';
@@ -7,78 +7,16 @@ import { useSignalR } from '../hooks/useSignalR';
 import { useAuth } from '../hooks/useAuth';
 import { useLanguage } from '../hooks/useLanguage';
 import axiosClient from '../api/axiosClient';
+import ChatSidebar from '../components/chat/ChatSidebar';
+import ChatMessageItem from '../components/chat/ChatMessageItem';
+import ChatInput from '../components/chat/ChatInput';
+import {
+  initials,
+  fullName,
+  getOtherTeilnehmer,
+  isEndpointUnsupported,
+} from '../components/chat/chatUtils';
 import '../styles/Chat.css';
-
-const initials = (text = '') =>
-  text
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? '')
-    .join('') || '?';
-
-const formatTime = (iso) => {
-  if (!iso) return '';
-  try {
-    return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } catch {
-    return iso.slice(11, 16);
-  }
-};
-
-const fullName = (u) => [u?.vorname, u?.nachname].filter(Boolean).join(' ').trim();
-const bytesToMb = (bytes) => {
-  const num = Number(bytes || 0);
-  if (!Number.isFinite(num) || num <= 0) return '0.0 MB';
-  return `${(num / (1024 * 1024)).toFixed(1)} MB`;
-};
-const formatDateTime = (iso) => {
-  if (!iso) return '';
-  try {
-    return new Date(iso).toLocaleString([], {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return iso;
-  }
-};
-const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024;
-const getExtension = (fileName = '') => {
-  const parts = String(fileName).toLowerCase().split('.');
-  return parts.length > 1 ? parts.pop() : '';
-};
-const isImageFile = (file) => {
-  const type = String(file?.dateiTyp || '').toLowerCase();
-  const ext = getExtension(file?.dateiName);
-  if (type.startsWith('image/')) return true;
-  return ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'].includes(ext);
-};
-const getFileIconClass = (file) => {
-  const type = String(file?.dateiTyp || '').toLowerCase();
-  const ext = getExtension(file?.dateiName);
-  if (type.includes('pdf') || ext === 'pdf') return 'bi-file-earmark-pdf';
-  if (type.includes('word') || ['doc', 'docx'].includes(ext)) return 'bi-file-earmark-word';
-  if (type.includes('excel') || type.includes('spreadsheet') || ['xls', 'xlsx', 'csv'].includes(ext)) return 'bi-file-earmark-excel';
-  if (type.includes('video') || ['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext)) return 'bi-file-earmark-play';
-  if (type.includes('zip') || ['zip', 'rar', '7z'].includes(ext)) return 'bi-file-earmark-zip';
-  if (type.includes('text') || ['txt', 'md', 'json', 'xml'].includes(ext)) return 'bi-file-earmark-text';
-  return 'bi-file-earmark';
-};
-
-// Other participants (excluding current user)
-const getOtherTeilnehmer = (room, currentUserId) => {
-  if (!Array.isArray(room?.teilnehmer)) return [];
-  return room.teilnehmer.filter((p) => p?.id !== currentUserId);
-};
-const QUICK_REACTIONS = ['ðŸ‘', 'â¤ï¸', 'ðŸ˜‚', 'ðŸŽ‰', 'ðŸ˜®'];
-const isEndpointUnsupported = (err) => {
-  const status = err?.response?.status;
-  return status === 404 || status === 405 || status === 501;
-};
 
 export default function Chat() {
   const { t } = useLanguage();
@@ -467,153 +405,31 @@ export default function Chat() {
         const p = others.find((o) => o.id === id);
         return p ? fullName(p) || t('chat.user') : null;
       })
-      .filter(Boolean);
   }, [activeRaum, typingUserIds, user?.id, t]);
 
   return (
     <div className={`chat-page m-0 m-md-3 ${isMobileChatOpen ? 'mobile-chat-open' : ''}`}>
-      {/* Sidebar â€” rooms */}
-      <aside className="chat-sidebar">
-        <div className="chat-sidebar-header">
-          <h5 className="chat-sidebar-title">
-            <i className="bi bi-chat-dots me-2" />
-            Chat
-          </h5>
-          <span className={`chat-status-pill ${status}`}>
-            <span className="dot" />
-            {status === 'connected' && t('common.online', 'Online')}
-            {status === 'connecting' && t('common.connecting', 'Connecting')}
-            {status === 'reconnecting' && `Reconnect ${reconnectAttempt || ''}`}
-            {status === 'disconnected' && t('common.offline', 'Offline')}
-          </span>
-        </div>
-
-        <div className="px-2 px-md-3 pb-2">
-          <ButtonGroup className="w-100" size="sm">
-            <Button
-              variant={activeTab === 'raeume' ? 'primary' : 'outline-primary'}
-              onClick={() => setActiveTab('raeume')}
-            >
-              {t('chat.tabs.rooms', 'Odalar')}
-            </Button>
-            <Button
-              variant={activeTab === 'users' ? 'primary' : 'outline-primary'}
-              onClick={() => setActiveTab('users')}
-            >
-              {t('chat.tabs.users', 'KullanÄ±cÄ±lar')}
-            </Button>
-          </ButtonGroup>
-        </div>
-
-        {status !== 'connected' && (
-          <div className="chat-reconnect-row">
-            <Button size="sm" variant="outline-secondary" onClick={reconnect}>
-              <i className="bi bi-arrow-clockwise me-1" />
-              {t('chat.connect')}
-            </Button>
-          </div>
-        )}
-
-        {error && <div className="chat-inline-error">{error}</div>}
-
-        <div className="chat-room-list">
-          {activeTab === 'raeume' && (
-            loadingRooms ? (
-              <div className="d-flex justify-content-center py-4">
-                <Spinner size="sm" />
-              </div>
-            ) : raeume.length === 0 ? (
-              <div className="chat-room-empty">{t('chat.noRooms')}</div>
-            ) : (
-              raeume.map((r) => {
-                const d = getRoomDisplay(r);
-                const isActive = activeRaum?.id === r.id;
-                let isPartnerOnline = false;
-                if (r.istDirektChat && d.partnerId) {
-                  isPartnerOnline = globalOnlineUserIds.has(String(d.partnerId).toLowerCase());
-                } else {
-                  isPartnerOnline = isActive && d.partnerId && onlineUserIds.has(d.partnerId);
-                }
-                
-                return (
-                  <div
-                    key={r.id}
-                    className={`chat-room-item ${isActive ? 'active' : ''}`}
-                    onClick={() => {
-                        setActiveRaum(r);
-                        setRaumIdForFile(r.id);
-                        setIsMobileChatOpen(true);
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setActiveRaum(r)}
-                  >
-                    <span className="chat-room-avatar-wrap">
-                      {d.bild ? (
-                        <img
-                          className="chat-room-avatar chat-room-avatar-img"
-                          src={getAvatarUrl(d.bild)}
-                          alt={d.title}
-                        />
-                      ) : (
-                        <span className="chat-room-avatar">
-                          {d.isGroup ? <i className="bi bi-people-fill" /> : initials(d.title)}
-                        </span>
-                      )}
-                      <span className={`chat-presence-dot ${isPartnerOnline ? 'online' : 'offline'}`} />
-                    </span>
-                    <span className="chat-room-name">{d.title}</span>
-                  </div>
-                );
-              })
-            )
-          )}
-
-          {activeTab === 'users' && (
-            loadingUsers ? (
-              <div className="d-flex justify-content-center py-4">
-                <Spinner size="sm" />
-              </div>
-            ) : allUsers.length === 0 ? (
-              <div className="chat-room-empty">{t('chat.users.empty', 'KullanÄ±cÄ± bulunamadÄ±')}</div>
-            ) : (
-              allUsers.map((u) => {
-                const isOnline = globalOnlineUserIds.has(String(u.id).toLowerCase());
-                const title = fullName(u);
-                return (
-                  <div
-                    key={u.id}
-                    className="chat-room-item"
-                    onClick={() => {
-                        startDirectChat(u.id);
-                        setRaumIdForFile(null);
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && startDirectChat(u.id)}
-                  >
-                    <span className="chat-room-avatar-wrap">
-                      {u.bild ? (
-                        <img
-                          className="chat-room-avatar chat-room-avatar-img"
-                          src={getAvatarUrl(u.bild)}
-                          alt={title}
-                        />
-                      ) : (
-                        <span className="chat-room-avatar">
-                          {initials(title)}
-                        </span>
-                      )}
-                      <span className={`chat-presence-dot ${isOnline ? 'online' : 'offline'}`} />
-                    </span>
-                    <span className="chat-room-name">{title}</span>
-                  </div>
-                );
-              })
-            )
-          )}
-        </div>
-      </aside>
+      <ChatSidebar
+        t={t}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        status={status}
+        reconnectAttempt={reconnectAttempt}
+        reconnect={reconnect}
+        error={error}
+        loadingRooms={loadingRooms}
+        raeume={raeume}
+        activeRaum={activeRaum}
+        setActiveRaum={setActiveRaum}
+        setRaumIdForFile={setRaumIdForFile}
+        setIsMobileChatOpen={setIsMobileChatOpen}
+        globalOnlineUserIds={globalOnlineUserIds}
+        onlineUserIds={onlineUserIds}
+        getRoomDisplay={getRoomDisplay}
+        loadingUsers={loadingUsers}
+        allUsers={allUsers}
+        startDirectChat={startDirectChat}
+      />
 
       {/* Main */}
       <section className="chat-main">
@@ -625,7 +441,11 @@ export default function Chat() {
         ) : (
           <>
             <div className="chat-main-header">
-              <button className="chat-back-btn d-lg-none me-2" onClick={() => setIsMobileChatOpen(false)}>
+              <button
+                type="button"
+                className="chat-back-btn d-lg-none me-2"
+                onClick={() => setIsMobileChatOpen(false)}
+              >
                 <i className="bi bi-arrow-left" />
               </button>
               <span className="chat-room-avatar-wrap">
@@ -651,7 +471,6 @@ export default function Chat() {
               <div className="d-flex flex-column" style={{ minWidth: 0 }}>
                 <strong className="text-truncate">{activeDisplay.title}</strong>
                 {(() => {
-                  // 1-1 â†’ partner online/offline
                   if (activeDisplay.partnerId) {
                     const on = globalOnlineUserIds.has(String(activeDisplay.partnerId).toLowerCase());
                     return (
@@ -660,7 +479,6 @@ export default function Chat() {
                       </span>
                     );
                   }
-                  // Group â†’ count of other online users
                   let othersOnline = 0;
                   globalOnlineUserIds.forEach((id) => {
                     if (id !== String(user?.id).toLowerCase()) othersOnline += 1;
@@ -697,184 +515,26 @@ export default function Chat() {
                 </div>
               ) : (
                 <>
-                  {nachrichten.map((n, i) => {
-                    const isOwn = n.absenderId === user?.id;
-                    const senderName =
-                      fullName(n.absender) || n.absenderName || t('chat.user');
-                    const bild = isOwn ? user?.bild : n.absender?.bild;
-                    const isEditing = editingMessageId === n.id;
-                    const reactions = Array.isArray(n.reaksiyonlar) ? n.reaksiyonlar : [];
-                    return (
-                      <div key={n.id ?? i} className={`chat-msg-row ${isOwn ? 'own' : ''}`}>
-                        {!isOwn && (
-                          <span className="chat-msg-avatar-wrap">
-                            {bild ? (
-                              <img
-                                className="chat-msg-avatar chat-msg-avatar-img"
-                                src={getAvatarUrl(bild)}
-                                alt={senderName}
-                              />
-                            ) : (
-                              <span className="chat-msg-avatar">{initials(senderName)}</span>
-                            )}
-                          </span>
-                        )}
-                        <div className="chat-bubble">
-                          <span className="chat-bubble-author">
-                            {isOwn ? (fullName(user) || user?.email || t('chat.user')) : senderName}
-                          </span>
-                          {isEditing ? (
-                            <div className="chat-edit-wrap">
-                              <input
-                                className="chat-edit-input"
-                                value={editText}
-                                onChange={(e) => setEditText(e.target.value)}
-                                maxLength={4000}
-                              />
-                              <div className="chat-edit-actions">
-                                <button type="button" className="chat-msg-action-btn" onClick={() => saveEditMessage(n)}>
-                                  <i className="bi bi-check2" />
-                                </button>
-                                <button type="button" className="chat-msg-action-btn" onClick={cancelEditMessage}>
-                                  <i className="bi bi-x-lg" />
-                                </button>
-                              </div>
-                            </div>
-                          ) : n.istDatei ? (
-                            <div className="chat-file-msg">
-                              {isImageFile(n) ? (
-                                <>
-                                  <a className="chat-file-link chat-file-link-image" href={getAvatarUrl(n.dateiPfad)} download={n.dateiName} target="_blank" rel="noopener noreferrer">
-                                    <img
-                                      className="chat-file-image"
-                                      src={getAvatarUrl(n.dateiPfad)}
-                                      alt={n.dateiName}
-                                    />
-                                    <span className="chat-file-meta">{n.dateiName} Â· {bytesToMb(n.dateiGroesse)}</span>
-                                  </a>
-                                  <a
-                                    className="chat-file-download-btn"
-                                    href={getAvatarUrl(n.dateiPfad)}
-                                    download={n.dateiName}
-                                    title={t('common.download', 'Download')}
-                                  >
-                                    <i className="bi bi-download" />
-                                  </a>
-                                </>
-                              ) : (
-                                <>
-                                  <a className="chat-file-link chat-file-link-doc" href={getAvatarUrl(n.dateiPfad)} download={n.dateiName} target="_blank" rel="noopener noreferrer">
-                                    <i className={`bi ${getFileIconClass(n)} chat-file-icon`} />
-                                    <span className="chat-file-meta">{n.dateiName} Â· {bytesToMb(n.dateiGroesse)}</span>
-                                  </a>
-                                  <a
-                                    className="chat-file-download-btn"
-                                    href={getAvatarUrl(n.dateiPfad)}
-                                    download={n.dateiName}
-                                    title={t('common.download', 'Download')}
-                                  >
-                                    <i className="bi bi-download" />
-                                  </a>
-                                </>
-                              )}
-                            </div>
-                          ) : (
-                            <div>{n.inhalt}</div>
-                          )}
-                          {!n.istDatei && reactions.length > 0 && (
-                            <div className="chat-reactions-row">
-                              {reactions.map((r, idx) => (
-                                <span key={`${r.emoji}-${idx}`} className="chat-reaction-pill">
-                                  {r.emoji} {r.adet || r.count || 1}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                          <div className="chat-msg-actions">
-                            <button
-                              type="button"
-                              className="chat-msg-action-btn"
-                              title={t('common.actions', 'Actions')}
-                              onClick={() => {
-                                setActionMenuForId((prev) => (prev === n.id ? null : n.id));
-                                setReactionPickerForId(null);
-                              }}
-                            >
-                              <i className="bi bi-three-dots" />
-                            </button>
-                          </div>
-                          {actionMenuForId === n.id && (
-                            <div className="chat-msg-actions-menu">
-                              {isOwn && !n.istDatei && !isEditing && (
-                                <button
-                                  type="button"
-                                  className="chat-msg-action-item"
-                                  onClick={() => startEditMessage(n)}
-                                >
-                                  <i className="bi bi-pencil-square" />
-                                  {t('common.edit', 'Edit')}
-                                </button>
-                              )}
-                              {isOwn && (
-                                <button
-                                  type="button"
-                                  className="chat-msg-action-item danger"
-                                  onClick={() => deleteMessage(n)}
-                                >
-                                  <i className="bi bi-trash3" />
-                                  {t('common.delete', 'Delete')}
-                                </button>
-                              )}
-                              <button
-                                type="button"
-                                className="chat-msg-action-item"
-                                onClick={() => addReaction(n, 'ðŸ‘')}
-                              >
-                                <i className="bi bi-hand-thumbs-up" />
-                                {t('chat.like', 'Like')}
-                              </button>
-                              <button
-                                type="button"
-                                className="chat-msg-action-item"
-                                onClick={() => setReactionPickerForId((prev) => (prev === n.id ? null : n.id))}
-                              >
-                                <i className="bi bi-emoji-smile" />
-                                {t('chat.reaction', 'Reaction')}
-                              </button>
-                              {reactionPickerForId === n.id && (
-                                <div className="chat-emoji-picker">
-                                  {QUICK_REACTIONS.map((emoji) => (
-                                    <button
-                                      key={emoji}
-                                      type="button"
-                                      className="chat-emoji-btn"
-                                      onClick={() => addReaction(n, emoji)}
-                                    >
-                                      {emoji}
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                          <span className="chat-bubble-time">{formatDateTime(n.geschicktAm)}</span>
-                        </div>
-                        {isOwn && (
-                          <span className="chat-msg-avatar-wrap chat-msg-avatar-wrap-own">
-                            {bild ? (
-                              <img
-                                className="chat-msg-avatar chat-msg-avatar-img"
-                                src={getAvatarUrl(bild)}
-                                alt={fullName(user) || user?.email || t('chat.user')}
-                              />
-                            ) : (
-                              <span className="chat-msg-avatar">{initials(fullName(user) || user?.email || t('chat.user'))}</span>
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
+                  {nachrichten.map((n, i) => (
+                    <ChatMessageItem
+                      key={n.id ?? i}
+                      message={n}
+                      user={user}
+                      t={t}
+                      editingMessageId={editingMessageId}
+                      editText={editText}
+                      setEditText={setEditText}
+                      saveEditMessage={saveEditMessage}
+                      cancelEditMessage={cancelEditMessage}
+                      startEditMessage={startEditMessage}
+                      deleteMessage={deleteMessage}
+                      addReaction={addReaction}
+                      actionMenuForId={actionMenuForId}
+                      setActionMenuForId={setActionMenuForId}
+                      reactionPickerForId={reactionPickerForId}
+                      setReactionPickerForId={setReactionPickerForId}
+                    />
+                  ))}
                   {typingNames.length > 0 && (
                     <div className="chat-typing-row">
                       <span className="chat-typing-bubble">
@@ -883,8 +543,8 @@ export default function Chat() {
                         </span>
                         <span className="chat-typing-text">
                           {typingNames.length === 1
-                            ? `${typingNames[0]} ${t('chat.isTyping', 'is typingâ€¦')}`
-                            : `${typingNames.length} ${t('chat.areTyping', 'people typingâ€¦')}`}
+                            ? `${typingNames[0]} ${t('chat.isTyping', 'is typing…')}`
+                            : `${typingNames.length} ${t('chat.areTyping', 'people typing…')}`}
                         </span>
                       </span>
                     </div>
@@ -894,59 +554,21 @@ export default function Chat() {
               )}
             </div>
 
-            <div className="chat-input-area">
-              {sendError && <div className="chat-inline-error mb-2">{sendError}</div>}
-              <div className="chat-input-wrapper">
-                <input
-                  className="chat-input"
-                  placeholder={t('chat.writeMessage')}
-                  value={newMsg}
-                  onChange={handleInputChange}
-                  onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                  disabled={!connected}
-                  maxLength={4000}
-                />
-                <button
-                  type="button"
-                  className={`chat-send-btn ${canSend ? 'active' : ''}`}
-                  onClick={sendMessage}
-                  disabled={!canSend}
-                  aria-label={t('common.send', 'Send')}
-                >
-                  <i className="bi bi-send-fill" />
-                </button>
-                {/* Dosya yÃ¼kleme butonu */}
-                {raumIdForFile && (
-                  <div className="chat-file-upload-wrapper">
-                    <input
-                      type="file"
-                      id="chat-file-input"
-                      style={{ display: 'none' }}
-                      onChange={(e) => handleFileUpload(e.target.files?.[0])}
-                      accept=".pdf,.png,.jpg,.jpeg,.xls,.xlsx,.doc,.docx,.zip,.rar,.txt"
-                    />
-                    <button
-                      type="button"
-                      className="chat-file-upload-btn"
-                      onClick={() => document.getElementById('chat-file-input')?.click()}
-                      title={t('chat.sendFile', 'Send file')}
-                      disabled={!connected}
-                    >
-                      <i className="bi bi-paperclip" />
-                    </button>
-                  </div>
-                )}
-              </div>
-              {!connected && (
-                <div className="chat-input-hint">
-                  <i className="bi bi-info-circle" />
-                  {t('chat.disconnectedHint', 'Disconnected â€” reconnect to send messages.')}
-                </div>
-              )}
-            </div>
+            <ChatInput
+              t={t}
+              newMsg={newMsg}
+              handleInputChange={handleInputChange}
+              sendMessage={sendMessage}
+              connected={connected}
+              canSend={canSend}
+              sendError={sendError}
+              raumIdForFile={raumIdForFile}
+              handleFileUpload={handleFileUpload}
+            />
           </>
         )}
       </section>
     </div>
   );
 }
+

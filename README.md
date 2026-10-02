@@ -78,21 +78,27 @@ Das Frontend arbeitet nahtlos mit dem **Vista.Core** (.NET 8/9 Web API) Backend 
 
 ---
 
-## 📁 Projektstruktur
+## 📁 Projektstruktur (Modulare Feature-Architektur)
 
 ```text
 src/
-├── api/             # REST-API-Services (axiosClient, authApi, kundeApi etc.)
-├── components/      # Wiederverwendbare UI-Komponenten (Layout, ErrorBoundary, Tabellen)
-├── hooks/           # Custom React Hooks (useAuth, useLanguage, useSignalR)
-├── pages/           # Seiten (Dashboard, Kunden, Projekte, Tickets, Chat, NotFound)
-├── styles/          # Modulare CSS-Stile
-├── theme.css        # CSS-Variablen & Farbschema
-├── App.jsx          # Routing & Zugriffsschutz (RBAC)
-└── main.jsx         # React-Einstiegspunkt & ErrorBoundary
+├── api/                   # REST-API-Services (axiosClient, authApi, kundeApi, benutzerApi etc.)
+├── components/            # Modulare & wiederverwendbare Feature-Komponenten
+│   ├── benutzer/          # 👤 Benutzer-Module (BenutzerModal, BenutzerViewModal, LockedUsersPanel)
+│   ├── chat/              # 💬 Chat-Module (ChatSidebar, ChatMessageItem, ChatInput, chatUtils)
+│   ├── dashboard/         # 📊 Dashboard-Widgets (StatCard, ChartCard, RecentTickets, PriorityBreakdown)
+│   ├── kunden/            # 🏢 Kunden-Module (KundeModal, AnsprechpartnerModal, KundeProjekteModal)
+│   ├── layout/            # 📐 App-Shell (MainLayout, Sidebar, Header, ThemeSettingsPanel)
+│   └── shared/            # 🧩 Globale UI-Komponenten (ErrorBoundary, ProtectedRoute, DataTable)
+├── hooks/                 # Custom React Hooks (useAuth, useLanguage, usePermission, useSignalR)
+├── pages/                 # Schlanke Seiten-Controller (Dashboard, Kunden, Benutzer, Chat, NotFound)
+├── styles/                # Modulare CSS-Stylesheets
+├── theme.css              # Globales Design-System & CSS-Tokens
+├── App.jsx                # Routing & RBAC (Role-Based Access Control)
+└── main.jsx               # React-Root & ErrorBoundary-Kapselung
 ```
 
-> 📄 Strukturübersicht: **[Doc/FileStructure.md](file:///c:/Users/onurg/source/repos/Saas.CoreX/Doc/FileStructure.md)**
+> 📄 Ausführliche Strukturübersicht: **[Doc/FileStructure.md](file:///c:/Users/onurg/source/repos/Saas.CoreX/Doc/FileStructure.md)**
 
 ---
 
@@ -207,18 +213,24 @@ Vista.CoreX ön yüzü, **Vista.Core** (.NET 8/9 Web API) backend servisiyle tam
 
 ---
 
-## 📁 Proje Dosya Yapısı
+## 📁 Proje Dosya Yapısı (Modüler Feature Mimarisi)
 
 ```text
 src/
-├── api/             # Backend REST API entegrasyon servisleri (axiosClient, authApi vb.)
-├── components/      # UI bileşenleri (MainLayout, Sidebar, ErrorBoundary, DataTable vb.)
-├── hooks/           # useAuth, useLanguage, usePermission, useSignalR, useVikaChat
-├── pages/           # Login, Dashboard, Kunden, Projekte, Tickets, Chat, NotFound vb.
-├── styles/          # Modüler CSS dosyaları
-├── theme.css        # Global CSS değişkenleri ve tema motoru
-├── App.jsx          # Rota tanımları ve rol bazlı erişim kontrolü (RBAC)
-└── main.jsx         # Kök React montajı ve ErrorBoundary wrap
+├── api/                   # Backend REST API entegrasyon servisleri (axiosClient, authApi, kundeApi...)
+├── components/            # Modüler & Yeniden kullanılabilir Feature bileşenleri
+│   ├── benutzer/          # 👤 Personel modülleri (BenutzerModal, BenutzerViewModal, LockedUsersPanel)
+│   ├── chat/              # 💬 Canlı mesajlaşma (ChatSidebar, ChatMessageItem, ChatInput, chatUtils)
+│   ├── dashboard/         # 📊 Dashboard widget'ları (StatCard, ChartCard, RecentTickets, PriorityBreakdown)
+│   ├── kunden/            # 🏢 Müşteri modülleri (KundeModal, AnsprechpartnerModal, KundeProjekteModal)
+│   ├── layout/            # 📐 Sayfa iskeleti (MainLayout, Sidebar, Header, ThemeSettingsPanel)
+│   └── shared/            # 🧩 Ortak bileşenler (ErrorBoundary, ProtectedRoute, DataTable, LoadingSpinner)
+├── hooks/                 # Özel React kancaları (useAuth, useLanguage, usePermission, useSignalR)
+├── pages/                 # İnce Sayfa Denetleyicileri (Dashboard, Kunden, Benutzer, Chat, NotFound vb.)
+├── styles/                # Modüler CSS stil dosyaları
+├── theme.css              # Global CSS değişkenleri ve tema sistemi
+├── App.jsx                # Rota yönetimi ve rol bazlı erişim denetimi (RBAC)
+└── main.jsx               # Kök React montajı ve ErrorBoundary koruması
 ```
 
 > 📄 Tüm dosya ve modüllerin detaylı açıklamaları için: **[Doc/FileStructure.md](file:///c:/Users/onurg/source/repos/Saas.CoreX/Doc/FileStructure.md)**
@@ -350,20 +362,24 @@ The frontend is architected to seamlessly pair with the **Vista.Core** (.NET 8/9
 
 ---
 
-## 📁 Project Directory Structure
+## 📁 Project Directory Structure (Modular Feature Architecture)
 
 ```text
 src/
-├── api/             # REST API integration services (axiosClient, authApi, kundeApi, etc.)
-├── components/      # UI components
-│   ├── layout/      # MainLayout, Sidebar, Header, ThemeSettingsPanel
-│   └── shared/      # ErrorBoundary, ProtectedRoute, DataTable, LoadingSpinner, etc.
-├── hooks/           # Custom React hooks (useAuth, useLanguage, usePermission, useSignalR)
-├── pages/           # Page routes (Dashboard, Kunden, Projekte, Tickets, Chat, NotFound)
-├── styles/          # Modular stylesheet modules
-├── theme.css        # Global CSS variables and design tokens
-├── App.jsx          # Route hierarchy and role-based access control (RBAC)
-└── main.jsx         # React application bootstrap & ErrorBoundary wrapper
+├── api/                   # REST API integration services (axiosClient, authApi, kundeApi, etc.)
+├── components/            # Modular & reusable feature components
+│   ├── benutzer/          # 👤 User management (BenutzerModal, BenutzerViewModal, LockedUsersPanel)
+│   ├── chat/              # 💬 Real-time chat (ChatSidebar, ChatMessageItem, ChatInput, chatUtils)
+│   ├── dashboard/         # 📊 Dashboard widgets (StatCard, ChartCard, RecentTickets, PriorityBreakdown)
+│   ├── kunden/            # 🏢 Customer modules (KundeModal, AnsprechpartnerModal, KundeProjekteModal)
+│   ├── layout/            # 📐 App shell (MainLayout, Sidebar, Header, ThemeSettingsPanel)
+│   └── shared/            # 🧩 Global shared UI (ErrorBoundary, ProtectedRoute, DataTable, LoadingSpinner)
+├── hooks/                 # Custom React hooks (useAuth, useLanguage, usePermission, useSignalR)
+├── pages/                 # Lean page controllers (Dashboard, Kunden, Benutzer, Chat, NotFound)
+├── styles/                # Modular stylesheet definitions
+├── theme.css              # Global CSS variables & design tokens
+├── App.jsx                # Routing layout & RBAC (Role-Based Access Control)
+└── main.jsx               # React bootstrap & ErrorBoundary wrapper
 ```
 
 > 📄 Full architecture blueprint: **[Doc/FileStructure.md](file:///c:/Users/onurg/source/repos/Saas.CoreX/Doc/FileStructure.md)**

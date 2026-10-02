@@ -56,10 +56,14 @@ Bu liste senior yazılımcının istediği kritik iyileştirmelerin takibini sa�
 
 ---
 
-## 🟡 SONRA ( optional )
+- [x] **God component refactor (Kunden, Benutzer, Dashboard, Chat vb.)** ✅
+  - [x] `Kunden.jsx`: `KundeModal`, `AnsprechpartnerModal`, `KundeProjekteModal` modülleri `src/components/kunden/` altına taşındı (~1.000 satırdan ~210 satıra indirildi).
+  - [x] `Benutzer.jsx`: `BenutzerModal`, `BenutzerViewModal`, `LockedUsersPanel` modülleri `src/components/benutzer/` altına taşındı (~800 satırdan ~200 satıra indirildi).
+  - [x] `Dashboard.jsx`: `StatCard`, `ChartCard`, `RecentTickets`, `PriorityBreakdown`, `DashboardHelpers` ve sabitler `src/components/dashboard/` altına modülerleştirildi.
+  - [x] `Chat.jsx`: `ChatSidebar`, `ChatMessageItem`, `ChatInput` ve `chatUtils` modülleri `src/components/chat/` altına taşındı, bozuk emoji/metin karakterleri düzeltildi.
+  - [x] `README.md`: Yeni modüler feature mimarisi şeması 3 dilde (Almanca 🇩🇪, Türkçe 🇹🇷, İngilizce 🇬🇧) güncellendi.
 - [ ] Code splitting (React.lazy / Suspense)
 - [ ] React Query / SWR entegrasyonu
-- [ ] God component refactor (Kunden, Dashboard, Chat vb.)
 - [ ] i18n JSON ayrıştırma
 - [ ] Unit & E2E Tests (Vitest, Playwright)
 - [ ] TypeScript geçişi
