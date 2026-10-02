@@ -269,7 +269,7 @@ npm run preview
 
 ---
 
-# [ENG] Vista.CoreX (Saas.CoreX) — Enterprise SaaS Platform for SMEs
+# 🇬🇧 Vista.CoreX (Saas.CoreX) — Enterprise SaaS Platform for SMEs
 
 > **🏢 Target Audience & Focus:** **Vista.CoreX is specifically designed for Small and Medium-sized Enterprises (SMEs / KMU).** It provides an agile, modern, and cost-effective all-in-one management platform without the complexity and overhead of bulky legacy ERP systems.
 
