@@ -126,10 +126,6 @@ Der Server ist standardmäßig unter `http://localhost:5173` erreichbar.
 
 ---
 
-# ==          ===           ==
-
----
-
 # 🇹🇷 Vista.CoreX (Saas.CoreX) — KOBİ'ler İçin Kurumsal SaaS Platformu
 
 > **🏢 Hedef Kitle & Odak:** **Aslında bu proje, özellikle Küçük ve Orta Ölçekli Şirketler (KOBİ / KMU) için uygundur.** Ağır ve maliyetli kurumsal ERP sistemlerinin karmaşasından uzak; hızlı, modern ve hepsi-bir-arada bir yönetim altyapısı sunar.
@@ -273,11 +269,7 @@ npm run preview
 
 ---
 
-# ==          ===           ==
-
----
-
-# 🇬🇧 Vista.CoreX (Saas.CoreX) — Enterprise SaaS Platform for SMEs
+# [ENG] Vista.CoreX (Saas.CoreX) — Enterprise SaaS Platform for SMEs
 
 > **🏢 Target Audience & Focus:** **Vista.CoreX is specifically designed for Small and Medium-sized Enterprises (SMEs / KMU).** It provides an agile, modern, and cost-effective all-in-one management platform without the complexity and overhead of bulky legacy ERP systems.
 
