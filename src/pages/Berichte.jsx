@@ -191,14 +191,6 @@ function UploadModal({ onHide, onSuccess }) {
     const titelValue = titel.trim() || '';
     const versionValue = version.trim() || '1.0'; // Default version
     
-    console.log('[Berichte] Uploading file:', {
-      entityType,
-      entityId: entityId.trim(),
-      titel: titelValue,
-      version: versionValue,
-      fileName: file.name
-    });
-    
     try {
       await berichtApi.upload(
         entityType, 

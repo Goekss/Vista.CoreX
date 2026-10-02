@@ -110,7 +110,6 @@ export default function Header({
 
   // Reset avatar error when user changes (login/logout)
   useEffect(() => {
-    console.log('[Header] User changed, resetting avatar error. User:', user?.email, 'has bild:', !!user?.bild);
     setAvatarError(false);
   }, [user, user?.bild]);
 

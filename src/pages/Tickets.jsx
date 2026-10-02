@@ -94,10 +94,6 @@ export default function Tickets() {
       } else {
         payload[key] = value;
       }
-    });
-    
-    console.log('[Tickets] Submitting payload:', payload);
-    
     try {
       if (editItem) {
         await ticketApi.update(editItem.id, payload);
@@ -264,16 +260,14 @@ function TicketModal({ show, onHide, onSave, initial, error }) {
       // Müşteriye ait projeleri filtrele
       const filteredProjects = projekteFull.filter(p => p.kundeId === form.kundeId);
       setProjekte(filteredProjects);
-      console.log(`[Tickets] Filtered ${filteredProjects.length} projects for kunde ${form.kundeId}`);
-
-      // Müşteriye ait ansprechpartner'leri yükle
       ansprechpartnerApi.getByKunde(form.kundeId)
         .then((res) => {
           setAnsprechpartner(res.data || []);
-          console.log(`[Tickets] Loaded ${res.data?.length || 0} ansprechpartner for kunde ${form.kundeId}`);
         })
         .catch((err) => {
-          console.error('[Tickets] Failed to load ansprechpartner:', err);
+          if (import.meta.env.DEV) {
+            console.error('[Tickets] Failed to load ansprechpartner:', err);
+          }
           setAnsprechpartner([]);
         });
     } else {
@@ -328,7 +322,6 @@ function TicketModal({ show, onHide, onSave, initial, error }) {
       zugewiesenAnId: form.zugewiesenAnId || null,
     };
     
-    console.log('[Tickets] Submitting payload:', payload);
     onSave(payload);
   };
 

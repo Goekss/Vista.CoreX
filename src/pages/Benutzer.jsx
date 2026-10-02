@@ -528,8 +528,6 @@ function BenutzerModal({ show, initial, onHide, onSave, onRefresh }) {
       }
     });
     
-    console.log('[Benutzer] Submitting payload:', cleaned);
-    
     try {
       // 1. Önce kullanıcı bilgilerini kaydet
       const response = await onSave(cleaned);

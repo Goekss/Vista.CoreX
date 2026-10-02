@@ -329,10 +329,6 @@ function KundeModal({ show, onHide, onSave, onRefresh, initial, error }) {
         // String olmayan alanlar (örn: number, boolean)
         payload[key] = value ?? '';
       }
-    });
-
-    console.log('[Kunden] Submitting payload:', payload);
-
     try {
       // 1. Önce müşteri bilgilerini kaydet (create veya update)
       const response = await onSave(payload);
@@ -702,7 +698,6 @@ function AnsprechpartnerModal({ kunde, onHide }) {
         filialeId: form.filialeId || null,
         kundeId: kunde.id
       };
-      console.log('[Ansprechpartner] Saving:', payload);
 
       if (editItem) {
         await ansprechpartnerApi.update(editItem.id, payload);
@@ -712,7 +707,9 @@ function AnsprechpartnerModal({ kunde, onHide }) {
       setShowForm(false);
       load();
     } catch (err) {
-      console.error('[Ansprechpartner] Save error:', err);
+      if (import.meta.env.DEV) {
+        console.error('[Ansprechpartner] Save error:', err);
+      }
       setError(err.response?.data?.message || t('common.saveError', 'Fehler beim Speichern'));
     }
   };
@@ -852,22 +849,14 @@ function ProjekteModal({ kunde, onHide }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      console.log('[ProjekteModal] Loading projects for Kunde ID:', kunde.id);
       const res = await projektApi.getByKunde(kunde.id);
-      console.log('[ProjekteModal] API Response:', res.data);
-
-      // Backend kundeId filtresi desteklemiyorsa, frontend'te filtrele
       let projects = res.data?.items || res.data || [];
-
-      // Eğer backend filtreleme yapmadıysa, manuel filtrele
       const filteredProjects = projects.filter(p => p.kundeId === kunde.id);
-
-      console.log('[ProjekteModal] Total projects:', projects.length);
-      console.log('[ProjekteModal] Filtered projects for kunde:', filteredProjects.length);
-
       setList(filteredProjects);
     } catch (err) {
-      console.error('[ProjekteModal] Load error:', err);
+      if (import.meta.env.DEV) {
+        console.error('[ProjekteModal] Load error:', err);
+      }
     }
     setLoading(false);
   }, [kunde.id]);

@@ -12,9 +12,6 @@ dist
 dist-ssr
 *.local
 
-# Docs (internal plans)
-Doc/
-
 # Environment
 .env
 .env.local

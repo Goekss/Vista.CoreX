@@ -7,17 +7,20 @@ import 'flag-icons/css/flag-icons.min.css'
 import './theme.css'
 import './mobile.css'
 import App from './App.jsx'
+import ErrorBoundary from './components/shared/ErrorBoundary.jsx'
 import { AuthProvider } from './hooks/useAuth.jsx'
 import { LanguageProvider } from './hooks/useLanguage.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
-      <LanguageProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </LanguageProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <LanguageProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </LanguageProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
 )

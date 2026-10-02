@@ -57,29 +57,30 @@ export default function Projekte() {
       } else {
         const res = await projektApi.create(projektData);
         projektId = res.data?.id || res.data;
-        console.log('[Projekte] Created project with ID:', projektId);
       }
       
       // Benutzer atamaları yap
       if (benutzerIds.length > 0 && projektId) {
-        console.log(`[Projekte] Assigning ${benutzerIds.length} benutzer to project ${projektId}`);
         for (const benutzerId of benutzerIds) {
           try {
             await projektApi.assignBenutzer(projektId, benutzerId);
           } catch (err) {
-            console.error(`[Projekte] Failed to assign benutzer ${benutzerId}:`, err);
+            if (import.meta.env.DEV) {
+              console.error(`[Projekte] Failed to assign benutzer ${benutzerId}:`, err);
+            }
           }
         }
       }
       
       // Ansprechpartner atamaları yap
       if (ansprechpartnerIds.length > 0 && projektId) {
-        console.log(`[Projekte] Assigning ${ansprechpartnerIds.length} ansprechpartner to project ${projektId}`);
         for (const ansprechpartnerId of ansprechpartnerIds) {
           try {
             await projektApi.assignAnsprechpartner(projektId, ansprechpartnerId);
           } catch (err) {
-            console.error(`[Projekte] Failed to assign ansprechpartner ${ansprechpartnerId}:`, err);
+            if (import.meta.env.DEV) {
+              console.error(`[Projekte] Failed to assign ansprechpartner ${ansprechpartnerId}:`, err);
+            }
           }
         }
       }
@@ -177,17 +178,19 @@ function ProjektModal({ show, onHide, onSave, initial, error }) {
     if (show) {
       kundeApi.getAll(1, 200).then((res) => {
         setKunden(res.data?.items || res.data || []);
-        console.log('[Projekte] Loaded kunden:', res.data?.items?.length || res.data?.length || 0);
       }).catch((err) => {
-        console.error('[Projekte] Failed to load kunden:', err);
+        if (import.meta.env.DEV) {
+          console.error('[Projekte] Failed to load kunden:', err);
+        }
       });
       
       benutzerApi.getAll(1, 200).then((res) => {
         const benutzerList = res.data?.items || res.data || [];
         setBenutzer(benutzerList);
-        console.log('[Projekte] Loaded benutzer:', benutzerList.length, benutzerList);
       }).catch((err) => {
-        console.error('[Projekte] Failed to load benutzer:', err);
+        if (import.meta.env.DEV) {
+          console.error('[Projekte] Failed to load benutzer:', err);
+        }
         setBenutzer([]);
       });
     }
@@ -201,10 +204,11 @@ function ProjektModal({ show, onHide, onSave, initial, error }) {
         filialeApi.getByKunde(form.kundeId)
           .then((res) => {
             setFilialen(res.data || []);
-            console.log(`[Projekte] Loaded ${res.data?.length || 0} filialen for kunde ${form.kundeId}`);
           })
           .catch((err) => {
-            console.error('[Projekte] Failed to load filialen:', err);
+            if (import.meta.env.DEV) {
+              console.error('[Projekte] Failed to load filialen:', err);
+            }
             setFilialen([]);
           });
       });
@@ -213,10 +217,11 @@ function ProjektModal({ show, onHide, onSave, initial, error }) {
       ansprechpartnerApi.getByKunde(form.kundeId)
         .then((res) => {
           setAnsprechpartner(res.data || []);
-          console.log(`[Projekte] Loaded ${res.data?.length || 0} ansprechpartner for kunde ${form.kundeId}`);
         })
         .catch((err) => {
-          console.error('[Projekte] Failed to load ansprechpartner:', err);
+          if (import.meta.env.DEV) {
+            console.error('[Projekte] Failed to load ansprechpartner:', err);
+          }
           setAnsprechpartner([]);
         });
     } else {
@@ -314,7 +319,6 @@ function ProjektModal({ show, onHide, onSave, initial, error }) {
       payload.ansprechpartnerIds = selectedAnsprechpartnerIds;
     }
     
-    console.log('[Projekte] Submitting payload:', payload);
     onSave(payload);
   };
 

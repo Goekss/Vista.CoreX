@@ -2,42 +2,22 @@ import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
 // -----------------------------------------------------------------
-// Access token management (localStorage + memory-based token)
+// Access token management (In-Memory + Silent Refresh)
 // -----------------------------------------------------------------
+// OWASP Güvenlik Standardı: Access token'lar XSS saldırılarına karşı
+// localStorage yerine bellekte (in-memory) tutulur. Sayfa yenilemelerinde
+// HttpOnly cookie üzerinden silent refresh akışı ile yeniden alınır.
 let _accessToken = null;
-
-// Uygulama ilk yüklendiğinde localStorage'dan token'ı yükle
-const initializeToken = () => {
-  const storedToken = localStorage.getItem('accessToken');
-  if (storedToken) {
-    _accessToken = storedToken;
-  }
-};
-
-// İlk yükleme
-initializeToken();
 
 export const setAccessToken = (token) => {
   _accessToken = token ?? null;
   
-  // Token'ı localStorage'a da kaydet (sayfa yenilemede kaybetmemek için)
-  if (token) {
-    localStorage.setItem('accessToken', token);
-    // SignalR hook'larının token geldiğini öğrenmesi için event fırlat
+  if (token && typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('accessTokenSet'));
-  } else {
-    localStorage.removeItem('accessToken');
   }
 };
 
 export const getAccessToken = () => {
-  // Memory'de yoksa localStorage'dan yükle
-  if (!_accessToken) {
-    const storedToken = localStorage.getItem('accessToken');
-    if (storedToken) {
-      _accessToken = storedToken;
-    }
-  }
   return _accessToken;
 };
 
@@ -56,11 +36,11 @@ export const getMandantIdFromToken = () => {
 // -----------------------------------------------------------------
 // Axios instance configuration
 // -----------------------------------------------------------------
-// API base origin (avatar URL'leri için kullanılır)
-// Dinamik olarak belirlenir: environment variable varsa onu kullan,
-// yoksa mevcut host'un IP'sini kullan (başka cihazlardan erişim için)
-export const API_ORIGIN = import.meta.env.VITE_API_URL || 
-  `http://${window.location.hostname}:8080`;
+// API base origin (VITE_API_BASE_URL öncelikli, fallback VITE_API_URL)
+export const API_ORIGIN =
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
+  `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:8080`;
 
 // Göreceli ya da tam avatar URL'ini tam URL'e dönüştürür
 export function getAvatarUrl(bild) {
@@ -81,14 +61,9 @@ const axiosClient = axios.create({
 axiosClient.interceptors.request.use(
   (config) => {
     // 1️⃣ Authorization header ekle (eğer token varsa)
-    // Not: Backend cookie-based auth kullanıyorsa token olmayabilir - bu normal!
     const token = getAccessToken();
-    
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
-      console.log(`[axios] Request to ${config.url} WITH token`);
-    } else {
-      console.log(`[axios] Request to ${config.url} WITHOUT token (cookie-based)`);
     }
 
     // 2️⃣ Mandant ID ekle (JWT'den al)
@@ -97,10 +72,8 @@ axiosClient.interceptors.request.use(
 
     // 3️⃣ Content-Type düzenlemesi (FormData için otomatik, JSON için manuel)
     if (config.data instanceof FormData) {
-      // FormData için Content-Type'ı SİL — Axios otomatik boundary ekler
       delete config.headers['Content-Type'];
     } else if (!config.headers['Content-Type']) {
-      // JSON istekleri için Content-Type ekle (sadece yoksa)
       config.headers['Content-Type'] = 'application/json';
     }
 
@@ -126,11 +99,8 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Auth endpoint kontrolü (refresh loop'u engellemek için)
-// Not: /auth/me burada YOK — sayfa yenilemede 401 gelirse refresh denensin
-// ANCAK: /auth/me login olmamış kullanıcıda 401 verir, bu durumda refresh denemeden reject et
 const AUTH_ENDPOINTS = ['/auth/login', '/auth/verify', '/auth/refresh', '/auth/logout'];
-const NO_RETRY_ENDPOINTS = []; // /auth/me artık refresh denesin; /auth/refresh AUTH_ENDPOINTS'te olduğu için döngü oluşmaz
+const NO_RETRY_ENDPOINTS = [];
 const isAuthEndpoint = (url) => AUTH_ENDPOINTS.some((endpoint) => url?.includes(endpoint));
 const isNoRetryEndpoint = (url) => NO_RETRY_ENDPOINTS.some((endpoint) => url?.includes(endpoint));
 
@@ -141,10 +111,10 @@ const normalizeError = (error) => {
   const url = error.config?.url;
 
   if (data) {
-    // Konsola detaylı hata logla
-    console.error(`[${status}] ${url}:`, JSON.stringify(data, null, 2));
+    if (import.meta.env.DEV) {
+      console.error(`[API Error ${status}] ${url}:`, data?.message || data?.nachricht || data?.title || data);
+    }
 
-    // Backend'den gelen farklı hata formatlarını standartlaştır
     if (!data.message) {
       if (data.nachricht) {
         data.message = data.nachricht;
@@ -153,7 +123,6 @@ const normalizeError = (error) => {
       }
     }
 
-    // Validation errors (errors/fehler) varsa birleştir
     const validationErrors = data.errors || data.fehler;
     if (!data.message && validationErrors && typeof validationErrors === 'object') {
       const messages = Object.values(validationErrors).flat();
@@ -162,7 +131,6 @@ const normalizeError = (error) => {
       }
     }
 
-    // Fallback: Hiçbir mesaj yoksa generic hata
     if (!data.message) {
       data.message = `Sunucu hatası (${status})`;
     }
@@ -174,27 +142,22 @@ const normalizeError = (error) => {
 axiosClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    // Hata mesajını normalize et
     normalizeError(error);
 
     const originalRequest = error.config;
 
-    // 401 değilse veya auth endpoint'iyse veya no-retry endpoint'iyse hemen reject et
+    // 401 değilse veya auth endpoint'iyse hemen reject et
     if (
-      error.response?.status !== 401 || 
-      originalRequest._retry || 
+      error.response?.status !== 401 ||
+      originalRequest._retry ||
       isAuthEndpoint(originalRequest.url) ||
       isNoRetryEndpoint(originalRequest.url)
     ) {
-      console.log(`[axios] Response error ${error.response?.status} for ${originalRequest.url}, no retry`);
       return Promise.reject(error);
     }
 
-    console.log(`[axios] 401 error for ${originalRequest.url}, attempting token refresh...`);
-
-    // Eğer token refresh zaten devam ediyorsa, bu isteği kuyruğa ekle
+    // Token refresh zaten devam ediyorsa, kuyruğa ekle
     if (isRefreshing) {
-      console.log('[axios] Refresh already in progress, queuing request...');
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
       })
@@ -207,24 +170,19 @@ axiosClient.interceptors.response.use(
         .catch((err) => Promise.reject(err));
     }
 
-    // Token refresh işlemini başlat
     originalRequest._retry = true;
     isRefreshing = true;
 
     try {
-      console.log('[axios] Calling /auth/refresh...');
-      // /auth/refresh endpoint'ini çağır (httpOnly cookie ile)
+      // /auth/refresh endpoint'ini çağır (HttpOnly cookie ile)
       const refreshResponse = await axiosClient.post('/auth/refresh');
       const newToken = refreshResponse.data?.accessToken ?? refreshResponse.data?.token ?? null;
 
       if (newToken) {
-        console.log('[axios] Refresh successful WITH token - saving to localStorage');
         setAccessToken(newToken);
         processQueue(null, newToken);
         originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
       } else {
-        console.log('[axios] Refresh successful WITHOUT token - using cookie-based auth');
-        // Token body'de yoksa cookie'den okunacak, Authorization header'ı kaldır
         processQueue(null, null);
         delete originalRequest.headers['Authorization'];
       }
@@ -232,8 +190,6 @@ axiosClient.interceptors.response.use(
       isRefreshing = false;
       return axiosClient(originalRequest);
     } catch (refreshError) {
-      console.error('[axios] Refresh failed:', refreshError.response?.status, refreshError.response?.data);
-      // Refresh başarısız — kullanıcıyı logout et
       processQueue(refreshError, null);
       isRefreshing = false;
       setAccessToken(null);
@@ -245,14 +201,11 @@ axiosClient.interceptors.response.use(
         window.dispatchEvent(new CustomEvent('vika:clearChat'));
       }
 
-      // Login sayfasına yönlendir (ama zaten oradaysak yönlendirme!)
+      // Login sayfasına yönlendir (zaten auth sayfasında değilsek)
       if (typeof window !== 'undefined') {
         const currentPath = window.location.pathname;
         if (currentPath !== '/login' && currentPath !== '/verify') {
-          console.log('[axios] Redirecting to /login');
           window.location.href = '/login';
-        } else {
-          console.log('[axios] Already on auth page, skipping redirect');
         }
       }
 
@@ -262,7 +215,6 @@ axiosClient.interceptors.response.use(
 );
 
 // SignalR accessTokenFactory için: token varsa direkt döner, yoksa /auth/refresh dener
-// axiosClient DEĞİL fetch kullanılır — interceptor üzerinden circular loop oluşmasın
 export const getOrRefreshToken = async () => {
   const current = getAccessToken();
   if (current) return current;
@@ -270,7 +222,7 @@ export const getOrRefreshToken = async () => {
   try {
     const res = await fetch(`${API_ORIGIN}/api/auth/refresh`, {
       method: 'POST',
-      credentials: 'include', // httpOnly refresh token cookie
+      credentials: 'include',
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -280,7 +232,7 @@ export const getOrRefreshToken = async () => {
       return newToken;
     }
   } catch {
-    // Refresh başarısız — null döner, SignalR bağlantıyı gracefully keser
+    // Refresh başarısız — null döner
   }
   return null;
 };

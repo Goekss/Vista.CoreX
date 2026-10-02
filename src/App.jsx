@@ -13,6 +13,7 @@ import Berichte from './pages/Berichte';
 import Abonnement from './pages/Abonnement';
 import Zahlung from './pages/Zahlung';
 import Filiale from './pages/Filiale';
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
@@ -51,6 +52,9 @@ function App() {
           </ProtectedRoute>
         } />
       </Route>
+
+      {/* Catch-all 404 Route */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

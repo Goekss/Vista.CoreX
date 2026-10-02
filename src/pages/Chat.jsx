@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Spinner, ButtonGroup } from 'react-bootstrap';
 import { chatApi } from '../api/chatApi';
 import { benutzerApi } from '../api/benutzerApi';
@@ -74,7 +74,7 @@ const getOtherTeilnehmer = (room, currentUserId) => {
   if (!Array.isArray(room?.teilnehmer)) return [];
   return room.teilnehmer.filter((p) => p?.id !== currentUserId);
 };
-const QUICK_REACTIONS = ['👍', '❤️', '😂', '🎉', '😮'];
+const QUICK_REACTIONS = ['ðŸ‘', 'â¤ï¸', 'ðŸ˜‚', 'ðŸŽ‰', 'ðŸ˜®'];
 const isEndpointUnsupported = (err) => {
   const status = err?.response?.status;
   return status === 404 || status === 405 || status === 501;
@@ -133,15 +133,12 @@ export default function Chat() {
         });
       },
       OnlineUsers: (ids) => {
-        console.log('[Chat] OnlineUsers event:', ids, 'type:', typeof ids);
         const normalizedIds = Array.isArray(ids) ? ids.map(String).map(id => id.toLowerCase()) : [];
-        console.log('[Chat] Normalized IDs:', normalizedIds);
         setOnlineUserIds(new Set(normalizedIds));
       },
       UserJoined: (userId) => {
         if (!userId) return;
         const uid = String(userId).toLowerCase();
-        console.log('[Chat] UserJoined:', uid);
         setOnlineUserIds((prev) => {
           if (prev.has(uid)) return prev;
           const next = new Set(prev);
@@ -161,15 +158,12 @@ export default function Chat() {
       GlobalUserOnlineStatus: (payload) => {
         if (!payload || !payload.userId) return;
         const uid = String(payload.userId).toLowerCase();
-        console.log('[Chat] GlobalUserOnlineStatus:', payload, '->', uid);
         setGlobalOnlineUserIds((prev) => {
           const next = new Set(prev);
           if (payload.isOnline) {
             next.add(uid);
-            console.log('[Chat] User online:', uid);
           } else {
             next.delete(uid);
-            console.log('[Chat] User offline:', uid);
           }
           return next;
         });
@@ -253,7 +247,7 @@ export default function Chat() {
     try {
       const res = await chatApi.getOrCreateDirektChat(zielUserId);
       const raumId = res.data.id;
-      // Odaları yenile
+      // OdalarÄ± yenile
       const roomsRes = await chatApi.getRaeume();
       setRaeume(roomsRes.data || []);
       const newActive = (roomsRes.data || []).find(r => r.id === raumId);
@@ -274,7 +268,7 @@ export default function Chat() {
     chatApi
       .getNachrichten(activeRaum.id)
       .then((res) => {
-        // Backend returns { total, page, size, items } — items already ASC chronological
+        // Backend returns { total, page, size, items } â€” items already ASC chronological
         const items = res.data?.items ?? (Array.isArray(res.data) ? res.data : []);
         setNachrichten(items);
       })
@@ -304,7 +298,7 @@ export default function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [nachrichten, typingUserIds]);
 
-  // Throttle Typing invocations — at most once per 2s
+  // Throttle Typing invocations â€” at most once per 2s
   const lastTypingSentRef = useRef(0);
   const handleInputChange = (e) => {
     setNewMsg(e.target.value);
@@ -438,7 +432,7 @@ export default function Chat() {
 
   const canSend = connected && !!activeRaum && newMsg.trim().length > 0;
 
-  // Compute room display info — partner avatar/name for 1-1, room name otherwise
+  // Compute room display info â€” partner avatar/name for 1-1, room name otherwise
   const getRoomDisplay = (room) => {
     const others = getOtherTeilnehmer(room, user?.id);
     if (others.length === 1) {
@@ -478,7 +472,7 @@ export default function Chat() {
 
   return (
     <div className={`chat-page m-0 m-md-3 ${isMobileChatOpen ? 'mobile-chat-open' : ''}`}>
-      {/* Sidebar — rooms */}
+      {/* Sidebar â€” rooms */}
       <aside className="chat-sidebar">
         <div className="chat-sidebar-header">
           <h5 className="chat-sidebar-title">
@@ -506,7 +500,7 @@ export default function Chat() {
               variant={activeTab === 'users' ? 'primary' : 'outline-primary'}
               onClick={() => setActiveTab('users')}
             >
-              {t('chat.tabs.users', 'Kullanıcılar')}
+              {t('chat.tabs.users', 'KullanÄ±cÄ±lar')}
             </Button>
           </ButtonGroup>
         </div>
@@ -581,7 +575,7 @@ export default function Chat() {
                 <Spinner size="sm" />
               </div>
             ) : allUsers.length === 0 ? (
-              <div className="chat-room-empty">{t('chat.users.empty', 'Kullanıcı bulunamadı')}</div>
+              <div className="chat-room-empty">{t('chat.users.empty', 'KullanÄ±cÄ± bulunamadÄ±')}</div>
             ) : (
               allUsers.map((u) => {
                 const isOnline = globalOnlineUserIds.has(String(u.id).toLowerCase());
@@ -657,7 +651,7 @@ export default function Chat() {
               <div className="d-flex flex-column" style={{ minWidth: 0 }}>
                 <strong className="text-truncate">{activeDisplay.title}</strong>
                 {(() => {
-                  // 1-1 → partner online/offline
+                  // 1-1 â†’ partner online/offline
                   if (activeDisplay.partnerId) {
                     const on = globalOnlineUserIds.has(String(activeDisplay.partnerId).toLowerCase());
                     return (
@@ -666,7 +660,7 @@ export default function Chat() {
                       </span>
                     );
                   }
-                  // Group → count of other online users
+                  // Group â†’ count of other online users
                   let othersOnline = 0;
                   globalOnlineUserIds.forEach((id) => {
                     if (id !== String(user?.id).toLowerCase()) othersOnline += 1;
@@ -756,7 +750,7 @@ export default function Chat() {
                                       src={getAvatarUrl(n.dateiPfad)}
                                       alt={n.dateiName}
                                     />
-                                    <span className="chat-file-meta">{n.dateiName} · {bytesToMb(n.dateiGroesse)}</span>
+                                    <span className="chat-file-meta">{n.dateiName} Â· {bytesToMb(n.dateiGroesse)}</span>
                                   </a>
                                   <a
                                     className="chat-file-download-btn"
@@ -771,7 +765,7 @@ export default function Chat() {
                                 <>
                                   <a className="chat-file-link chat-file-link-doc" href={getAvatarUrl(n.dateiPfad)} download={n.dateiName} target="_blank" rel="noopener noreferrer">
                                     <i className={`bi ${getFileIconClass(n)} chat-file-icon`} />
-                                    <span className="chat-file-meta">{n.dateiName} · {bytesToMb(n.dateiGroesse)}</span>
+                                    <span className="chat-file-meta">{n.dateiName} Â· {bytesToMb(n.dateiGroesse)}</span>
                                   </a>
                                   <a
                                     className="chat-file-download-btn"
@@ -834,7 +828,7 @@ export default function Chat() {
                               <button
                                 type="button"
                                 className="chat-msg-action-item"
-                                onClick={() => addReaction(n, '👍')}
+                                onClick={() => addReaction(n, 'ðŸ‘')}
                               >
                                 <i className="bi bi-hand-thumbs-up" />
                                 {t('chat.like', 'Like')}
@@ -889,8 +883,8 @@ export default function Chat() {
                         </span>
                         <span className="chat-typing-text">
                           {typingNames.length === 1
-                            ? `${typingNames[0]} ${t('chat.isTyping', 'is typing…')}`
-                            : `${typingNames.length} ${t('chat.areTyping', 'people typing…')}`}
+                            ? `${typingNames[0]} ${t('chat.isTyping', 'is typingâ€¦')}`
+                            : `${typingNames.length} ${t('chat.areTyping', 'people typingâ€¦')}`}
                         </span>
                       </span>
                     </div>
@@ -921,7 +915,7 @@ export default function Chat() {
                 >
                   <i className="bi bi-send-fill" />
                 </button>
-                {/* Dosya yükleme butonu */}
+                {/* Dosya yÃ¼kleme butonu */}
                 {raumIdForFile && (
                   <div className="chat-file-upload-wrapper">
                     <input
@@ -946,7 +940,7 @@ export default function Chat() {
               {!connected && (
                 <div className="chat-input-hint">
                   <i className="bi bi-info-circle" />
-                  {t('chat.disconnectedHint', 'Disconnected — reconnect to send messages.')}
+                  {t('chat.disconnectedHint', 'Disconnected â€” reconnect to send messages.')}
                 </div>
               )}
             </div>
